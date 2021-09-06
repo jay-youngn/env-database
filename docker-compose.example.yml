@@ -1,0 +1,67 @@
+version: "3"
+services:
+  redis:
+    image: redis:${REDIS_VERSION}
+    container_name: ${CONTAINER_PREFIX}redis
+    environment:
+      TZ: "$TZ"
+    volumes:
+      - ${REDIS_CONF_FILE}:/etc/redis.conf:ro
+      - ${DATA_DIR}/redis:/data/:rw
+    ports:
+      - "${REDIS_HOST_PORT}:6379"
+    entrypoint: ["redis-server", "/etc/redis.conf"]
+    restart: always
+    networks:
+      - default
+
+  mongodb:
+    image: mongo:${MONGODB_VERSION}
+    container_name: ${CONTAINER_PREFIX}mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGODB_INITDB_ROOT_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_INITDB_ROOT_PASSWORD}"
+      TZ: "$TZ"
+    volumes:
+      - ${DATA_DIR}/mongo:/data/db:rw
+      - ${DATA_DIR}/mongo_key:/mongo:rw
+    ports:
+      - "${MONGODB_HOST_PORT}:27017"
+    restart: always
+    networks:
+      - default
+    command:
+      --auth
+
+  mysql5:
+    image: mysql:${MYSQL5_VERSION}
+    container_name: ${CONTAINER_PREFIX}mysql5
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL5_ROOT_PASSWORD}"
+      TZ: "$TZ"
+    volumes:
+      - ${MYSQL5_CONF_FILE}:/etc/mysql/conf.d/mysql.cnf:ro
+      - ${DATA_DIR}/mysql5:/var/lib/mysql/:rw
+    ports:
+      - "${MYSQL5_HOST_PORT}:3306"
+    restart: always
+    networks:
+      - default
+
+  memcached:
+    image: memcached:${MEMCACHED_VERSION}
+    container_name: ${CONTAINER_PREFIX}memcached
+    environment:
+      MEMCACHED_CACHE_SIZE: "${MEMCACHED_CACHE_SIZE}"
+      MEMCACHED_MAX_CONNECTIONS: "${MEMCACHED_MAX_CONNECTIONS}"
+      # MEMCACHED_THREADS: "${MEMCACHED_THREADS}"
+      # MEMCACHED_USERNAME: "${MEMCACHED_USERNAME}"
+      # MEMCACHED_PASSWORD: "${MEMCACHED_PASSWORD}"
+    ports:
+      - "${MEMCACHED_HOST_PORT}:11211"
+    restart: always
+    networks:
+      - default
+
+networks:
+  default:
