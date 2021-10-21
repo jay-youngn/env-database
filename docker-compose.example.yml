@@ -12,6 +12,8 @@ services:
       - "${REDIS_HOST_PORT}:6379"
     entrypoint: ["redis-server", "/etc/redis.conf"]
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
     networks:
       - default
 
@@ -45,6 +47,10 @@ services:
     ports:
       - "${MYSQL5_HOST_PORT}:3306"
     restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
     networks:
       - default
 
@@ -60,6 +66,10 @@ services:
     ports:
       - "${MYSQL8_HOST_PORT}:3306"
     restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
     networks:
       - default
 
