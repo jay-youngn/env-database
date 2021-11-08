@@ -14,11 +14,12 @@ services:
     environment:
       TZ: "$TZ"
     volumes:
-      - ${REDIS_CONF_FILE}:/etc/redis.conf:ro,cached
+      - ${REDIS_ACL_FILE}:/etc/redis/users.acl:ro,cached
+      - ${REDIS_CONF_FILE}:/etc/redis/redis.conf:ro,cached
       - ${DATA_DIR}/redis:/data/:rw,delegated
     ports:
       - "${REDIS_HOST_PORT}:6379"
-    entrypoint: ["redis-server", "/etc/redis.conf"]
+    entrypoint: ["redis-server", "/etc/redis/redis.conf"]
     healthcheck:
       <<: *healthcheck_defaults
       test: ["CMD", "redis-cli", "ping"]
