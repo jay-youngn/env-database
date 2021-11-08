@@ -1,4 +1,6 @@
 version: "3"
+x-restart-policy: &restart_policy
+  restart: always
 x-healthcheck-defaults: &healthcheck_defaults
   interval: 30s
   timeout: 5s
@@ -6,6 +8,7 @@ x-healthcheck-defaults: &healthcheck_defaults
   start_period: 10s
 services:
   redis:
+    <<: *restart_policy
     image: redis:${REDIS_VERSION}
     container_name: ${CONTAINER_PREFIX}redis
     environment:
@@ -16,7 +19,6 @@ services:
     ports:
       - "${REDIS_HOST_PORT}:6379"
     entrypoint: ["redis-server", "/etc/redis.conf"]
-    restart: always
     healthcheck:
       <<: *healthcheck_defaults
       test: ["CMD", "redis-cli", "ping"]
@@ -24,6 +26,7 @@ services:
       - default
 
   mongodb:
+    <<: *restart_policy
     image: mongo:${MONGODB_VERSION}
     container_name: ${CONTAINER_PREFIX}mongodb
     environment:
@@ -35,7 +38,6 @@ services:
       - ${DATA_DIR}/mongo_key:/mongo:rw,delegated
     ports:
       - "${MONGODB_HOST_PORT}:27017"
-    restart: always
     healthcheck:
       <<: *healthcheck_defaults
       test: echo 'db.runCommand("ping").ok' | mongo 127.0.0.1:27017/test --quiet
@@ -45,6 +47,7 @@ services:
       --auth
 
   mysql5:
+    <<: *restart_policy
     image: mysql:${MYSQL5_VERSION}
     container_name: ${CONTAINER_PREFIX}mysql5
     environment:
@@ -55,7 +58,6 @@ services:
       - ${DATA_DIR}/mysql5:/var/lib/mysql/:rw,delegated
     ports:
       - "${MYSQL5_HOST_PORT}:3306"
-    restart: always
     healthcheck:
       <<: *healthcheck_defaults
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
@@ -63,6 +65,7 @@ services:
       - default
 
   mysql8:
+    <<: *restart_policy
     image: mysql:${MYSQL8_VERSION}
     container_name: ${CONTAINER_PREFIX}mysql8
     environment:
@@ -73,7 +76,6 @@ services:
       - ${DATA_DIR}/mysql8:/var/lib/mysql/:rw,delegated
     ports:
       - "${MYSQL8_HOST_PORT}:3306"
-    restart: always
     healthcheck:
       <<: *healthcheck_defaults
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
@@ -81,6 +83,7 @@ services:
       - default
 
   memcached:
+    <<: *restart_policy
     image: memcached:${MEMCACHED_VERSION}
     container_name: ${CONTAINER_PREFIX}memcached
     environment:
@@ -91,7 +94,6 @@ services:
       # MEMCACHED_PASSWORD: "${MEMCACHED_PASSWORD}"
     ports:
       - "${MEMCACHED_HOST_PORT}:11211"
-    restart: always
     healthcheck:
       <<: *healthcheck_defaults
       test: echo stats | nc 127.0.0.1 11211
