@@ -1,4 +1,9 @@
 version: "3"
+x-healthcheck-defaults: &healthcheck_defaults
+  interval: 30s
+  timeout: 5s
+  retries: 5
+  start_period: 10s
 services:
   redis:
     image: redis:${REDIS_VERSION}
@@ -6,13 +11,14 @@ services:
     environment:
       TZ: "$TZ"
     volumes:
-      - ${REDIS_CONF_FILE}:/etc/redis.conf:ro
-      - ${DATA_DIR}/redis:/data/:rw
+      - ${REDIS_CONF_FILE}:/etc/redis.conf:ro,cached
+      - ${DATA_DIR}/redis:/data/:rw,delegated
     ports:
       - "${REDIS_HOST_PORT}:6379"
     entrypoint: ["redis-server", "/etc/redis.conf"]
     restart: always
     healthcheck:
+      <<: *healthcheck_defaults
       test: ["CMD", "redis-cli", "ping"]
     networks:
       - default
@@ -25,11 +31,14 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_INITDB_ROOT_PASSWORD}"
       TZ: "$TZ"
     volumes:
-      - ${DATA_DIR}/mongo:/data/db:rw
-      - ${DATA_DIR}/mongo_key:/mongo:rw
+      - ${DATA_DIR}/mongo:/data/db:rw,delegated
+      - ${DATA_DIR}/mongo_key:/mongo:rw,delegated
     ports:
       - "${MONGODB_HOST_PORT}:27017"
     restart: always
+    healthcheck:
+      <<: *healthcheck_defaults
+      test: echo 'db.runCommand("ping").ok' | mongo 127.0.0.1:27017/test --quiet
     networks:
       - default
     command:
@@ -42,15 +51,14 @@ services:
       MYSQL_ROOT_PASSWORD: "${MYSQL5_ROOT_PASSWORD}"
       TZ: "$TZ"
     volumes:
-      - ${MYSQL5_CONF_FILE}:/etc/mysql/conf.d/mysql.cnf:ro
-      - ${DATA_DIR}/mysql5:/var/lib/mysql/:rw
+      - ${MYSQL5_CONF_FILE}:/etc/mysql/conf.d/mysql.cnf:ro,cached
+      - ${DATA_DIR}/mysql5:/var/lib/mysql/:rw,delegated
     ports:
       - "${MYSQL5_HOST_PORT}:3306"
     restart: always
     healthcheck:
+      <<: *healthcheck_defaults
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
     networks:
       - default
 
@@ -61,15 +69,14 @@ services:
       MYSQL_ROOT_PASSWORD: "${MYSQL8_ROOT_PASSWORD}"
       TZ: "$TZ"
     volumes:
-      - ${MYSQL8_CONF_FILE}:/etc/mysql/conf.d/mysql.cnf:ro
-      - ${DATA_DIR}/mysql8:/var/lib/mysql/:rw
+      - ${MYSQL8_CONF_FILE}:/etc/mysql/conf.d/mysql.cnf:ro,cached
+      - ${DATA_DIR}/mysql8:/var/lib/mysql/:rw,delegated
     ports:
       - "${MYSQL8_HOST_PORT}:3306"
     restart: always
     healthcheck:
+      <<: *healthcheck_defaults
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
     networks:
       - default
 
@@ -85,6 +92,9 @@ services:
     ports:
       - "${MEMCACHED_HOST_PORT}:11211"
     restart: always
+    healthcheck:
+      <<: *healthcheck_defaults
+      test: echo stats | nc 127.0.0.1 11211
     networks:
       - default
 
