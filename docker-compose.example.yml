@@ -7,17 +7,17 @@ x-healthcheck-defaults: &healthcheck_defaults
   retries: 5
   start_period: 10s
 services:
-  redis:
+  redis-stack:
     <<: *restart_policy
     image: redis/redis-stack-server:latest
-    container_name: ${CONTAINER_PREFIX}redis
+    container_name: ${CONTAINER_PREFIX}redis-stack
     environment:
       TZ: "$TZ"
-      REDIS_ARGS: "--requirepass ${REDIS_PASSWORD}"
+      REDIS_ARGS: "--requirepass ${REDIS_STACK_PASSWORD}"
     volumes:
       - ${DATA_DIR}/redis:/data/:rw,delegated
     ports:
-      - "${REDIS_HOST_PORT}:6379"
+      - "${REDIS_STACK_HOST_PORT}:6379"
     healthcheck:
       <<: *healthcheck_defaults
       test: ["CMD", "redis-cli", "ping"]
